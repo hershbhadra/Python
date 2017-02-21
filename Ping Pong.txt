@@ -1,0 +1,127 @@
+#Classic arcade game Pong
+
+import simplegui
+import random
+
+# initialize globals - pos and vel encode vertical info for paddles
+WIDTH = 600
+HEIGHT = 400       
+BALL_RADIUS = 20
+PAD_WIDTH = 8
+PAD_HEIGHT = 80
+HALF_PAD_WIDTH = PAD_WIDTH / 2
+HALF_PAD_HEIGHT = PAD_HEIGHT / 2
+LEFT = False
+RIGHT = True
+
+# initialize BALL_POSITION and BALL_VELOCITY for new ball in middle of table
+# if direction is RIGHT, the ball's velocity is upper right, else upper left
+def spawn_ball(direction):
+    global BALL_POSITION, BALL_VELOCITY# these are vectors stored as lists
+    BALL_POSITION = [WIDTH/2, HEIGHT/2]
+    BALL_VELOCITY= [random.randrange(120, 240), random.randrange(60, 180)]
+    if (direction == LEFT):
+        BALL_VELOCITY[0] = -BALL_VELOCITY[0]
+        BALL_VELOCITY[1] = -BALL_VELOCITY[1]
+    else:
+        BALL_VELOCITY[1] = -BALL_VELOCITY[1]     
+
+# define event handlers
+def new_game():
+    global PAD1_POSITION, PAD2_POSITION, PAD1_VELOCITY, PAD2_VELOCITY  # these are numbers
+    global PAD1_SCORE, PAD2_SCORE  # these are ints
+    PAD1_POSITION= HEIGHT / 2
+    PAD2_POSITION= HEIGHT / 2
+    PAD1_VELOCITY = 0
+    PAD2_VELOCITY = 0
+    PAD1_SCORE = 0
+    PAD2_SCORE = 0
+    spawn_ball(RIGHT)
+
+def draw(canvas):
+    global PAD1_SCORE, PAD2_SCORE, PAD1_POSITION, PAD2_POSITION, BALL_POSITION, BALL_VELOCITY
+
+    # draw mid line and gutters
+    canvas.draw_line([WIDTH / 2, 0],[WIDTH / 2, HEIGHT], 4, "Silver")
+    canvas.draw_line([PAD_WIDTH, 0],[PAD_WIDTH, HEIGHT], 2, "Silver")
+    canvas.draw_line([WIDTH - PAD_WIDTH, 0],[WIDTH - PAD_WIDTH, HEIGHT], 2, "Silver")
+    
+    # update ball
+    if (BALL_POSITION[1] <= BALL_RADIUS) or (BALL_POSITION[1] >= HEIGHT - BALL_RADIUS):
+        BALL_VELOCITY[1] = -BALL_VELOCITY[1] 
+ 
+    if (BALL_POSITION[0] <= PAD_WIDTH + BALL_RADIUS):
+        if (PAD1_POSITION- HALF_PAD_HEIGHT <= BALL_POSITION[1] <= PAD1_POSITION+ HALF_PAD_HEIGHT):
+            BALL_VELOCITY[0] = -BALL_VELOCITY[0]
+            BALL_VELOCITY[0] *= 1.1
+            BALL_VELOCITY[1] *= 1.1
+        else:
+            spawn_ball(RIGHT)
+            PAD2_SCORE += 1
+    
+    if (BALL_POSITION[0] >= WIDTH - BALL_RADIUS -PAD_WIDTH):
+        if (PAD2_POSITION- HALF_PAD_HEIGHT <= BALL_POSITION[1] <= PAD2_POSITION+ HALF_PAD_HEIGHT):
+            BALL_VELOCITY[0] = -BALL_VELOCITY[0] 
+            BALL_VELOCITY[0] *= 1.1
+            BALL_VELOCITY[1] *= 1.1
+        else:
+            spawn_ball(LEFT)
+            PAD1_SCORE += 1
+    
+    BALL_POSITION[0] += BALL_VELOCITY[0]/60
+    BALL_POSITION[1] += BALL_VELOCITY[1]/60
+            
+    # draw ball
+    canvas.draw_circle(BALL_POSITION, BALL_RADIUS, 5, "Blue", "Orange")
+    
+    # update paddle's vertical position, keep paddle on the screen
+    if (HALF_PAD_HEIGHT <= PAD1_POSITION+ PAD1_VELOCITY <= HEIGHT - HALF_PAD_HEIGHT):
+        PAD1_POSITION+= PAD1_VELOCITY
+        
+    if (HALF_PAD_HEIGHT <= PAD2_POSITION+ PAD2_VELOCITY <= HEIGHT - HALF_PAD_HEIGHT):
+        PAD2_POSITION+= PAD2_VELOCITY
+    
+    # draw paddles
+    canvas.draw_line([HALF_PAD_WIDTH, PAD1_POSITION- HALF_PAD_HEIGHT],   
+                [HALF_PAD_WIDTH, PAD1_POSITION+ HALF_PAD_HEIGHT],   
+                PAD_WIDTH, "Red")     
+    canvas.draw_line([WIDTH - HALF_PAD_WIDTH, PAD2_POSITION- HALF_PAD_HEIGHT],   
+                [WIDTH - HALF_PAD_WIDTH, PAD2_POSITION+ HALF_PAD_HEIGHT],   
+                PAD_WIDTH, "Red")   
+    
+    # draw scores
+    canvas.draw_text(str(PAD1_SCORE), [130, 80], 48, 'Gold')
+    canvas.draw_text("P1: Use W, S", [90, 35], 15, 'Gold')
+    canvas.draw_text(str(PAD2_SCORE), [450, 80], 48, 'Gold')
+    canvas.draw_text("P2: Use Up, Down", [400, 35], 15, 'Gold')
+        
+def keydown(key):
+    global PAD1_VELOCITY, PAD2_VELOCITY
+    Speed = 8
+    if key == simplegui.KEY_MAP['w']:    
+        PAD1_VELOCITY = -Speed   
+    elif key == simplegui.KEY_MAP['s']:    
+        PAD1_VELOCITY = Speed    
+    elif key == simplegui.KEY_MAP['up']:    
+        PAD2_VELOCITY = -Speed   
+    elif key == simplegui.KEY_MAP['down']:    
+        PAD2_VELOCITY = Speed
+
+def keyup(key):
+    global PAD1_VELOCITY, PAD2_VELOCITY
+    if (key == simplegui.KEY_MAP['w'] or key == simplegui.KEY_MAP['s']):    
+        PAD1_VELOCITY = 0     
+    if (key == simplegui.KEY_MAP['up'] or key == simplegui.KEY_MAP['down']):    
+        PAD2_VELOCITY = 0   
+
+# create frame
+frame = simplegui.create_frame("Pong", WIDTH, HEIGHT)
+frame.set_canvas_background('Black')
+frame.set_draw_handler(draw)
+frame.set_keydown_handler(keydown)
+frame.set_keyup_handler(keyup)
+frame.add_button("Restart", new_game, 200) 
+
+# start frame
+new_game()
+frame.start()

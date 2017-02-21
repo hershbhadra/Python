@@ -1,0 +1,98 @@
+#"Guess the number" game
+
+import simplegui
+import random
+import math
+
+# initialize global variables used in your code
+range = 100
+secret_number = 0
+guesses_remaining = 0
+
+
+# helper function to start and restart the game
+def new_game():  
+    global range
+    global secret_number
+    global guesses_remaining
+    
+    secret_number = random.randrange(0, range)
+    
+    if range == 100 : 	
+        guesses_remaining = 7
+    elif range == 1000 :
+        guesses_remaining = 10
+      
+
+    print "New game. The range is from 0 to", range
+    print "Number of remaining guesses is ", guesses_remaining
+    pass
+
+
+# define event handlers for control panel
+def range100():
+    global range
+    # button that changes range to range [0,100) and restarts
+    range = 100 
+    #blank line
+    print
+    new_game() 
+    
+
+def range1000():
+    global range
+    # button that changes range to range [0,1000) and restarts
+    range = 1000 
+    #blank line
+    print
+    new_game()
+    pass
+
+    
+def input_guess(guess):    
+    # main game logic goes here	
+    global guesses_remaining
+    global secret_number 
+    
+    won = False
+    
+    print "You guessed",guess
+    guesses_remaining = guesses_remaining - 1
+    print "Number of remaining guesses is", guesses_remaining
+    
+    
+    if int(guess) == secret_number:       
+        won = True
+    elif int(guess) > secret_number:
+        result = "That is incorrect. Guess lower!"
+        
+    else:
+        result = "That is incorrect. Guess Higher!" 
+         
+    if won:
+        print "That is correct! You Win!"
+        print
+        new_game()
+        return
+    elif guesses_remaining == 0:
+        print "You loose. The number was", secret_number; 
+        print "Please try again. Hint: Use binary search!"
+        print
+        new_game()
+        return
+    else:
+        print result
+        pass
+            
+    
+# create frame
+f = simplegui.create_frame("Guess the number!", 150, 150)
+
+# register event handlers for control elements
+f.add_button("Range is [0,100)", range100, 200)
+f.add_button("Range is [0,1000)", range1000, 200)	
+f.add_input("Enter your guess", input_guess, 200)
+
+# call new_game and start frame
+new_game()
+f.start()
