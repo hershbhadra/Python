@@ -1,1 +1,1 @@
-This repository contains mini games contains simple Python functions
+This repository contains mini games created using simple Python functions. The platform used was Codeskulptor; a web browser based platform created by Rice University professors for the purpose of their Introductory Python course on Coursera. 
